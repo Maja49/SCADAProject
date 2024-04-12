@@ -29,13 +29,18 @@ namespace Modbus.ModbusFunctions
 
             byte[] req = new byte[12];
 
-            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.TransactionId)), 0, req, 0, 2);
-            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.ProtocolId)), 0, req, 2, 2);
-            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.Length)), 0, req, 4, 2);
+            req[0] = BitConverter.GetBytes(CommandParameters.TransactionId)[1];
+            req[1] = BitConverter.GetBytes(CommandParameters.TransactionId)[0];
+            req[2] = BitConverter.GetBytes(CommandParameters.ProtocolId)[1];
+            req[3] = BitConverter.GetBytes(CommandParameters.ProtocolId)[0];
+            req[4] = BitConverter.GetBytes(CommandParameters.Length)[1];
+            req[5] = BitConverter.GetBytes(CommandParameters.Length)[0];
             req[6] = CommandParameters.UnitId;
             req[7] = CommandParameters.FunctionCode;
-            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)((ModbusReadCommandParameters)CommandParameters).StartAddress)), 0, req, 8, 2);
-            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)((ModbusReadCommandParameters)CommandParameters).Quantity)), 0, req, 10, 2);
+            req[8] = BitConverter.GetBytes(((ModbusWriteCommandParameters)CommandParameters).OutputAddress)[1];
+            req[9] = BitConverter.GetBytes(((ModbusWriteCommandParameters)CommandParameters).OutputAddress)[0];
+            req[10] = BitConverter.GetBytes(((ModbusWriteCommandParameters)CommandParameters).Value)[1];
+            req[11] = BitConverter.GetBytes(((ModbusWriteCommandParameters)CommandParameters).Value)[0];
 
             return req;
 
@@ -47,22 +52,15 @@ namespace Modbus.ModbusFunctions
             //TO DO: IMPLEMENT
             //throw new NotImplementedException();
 
-            var ret = new Dictionary<Tuple<PointType, ushort>, ushort>();
+            Dictionary<Tuple<PointType, ushort>, ushort> resp = new Dictionary<Tuple<PointType, ushort>, ushort>();
 
-            if (response[7] == CommandParameters.FunctionCode + 0x80)
-            {
-                HandeException(response[8]);
-            }
-            else
-            {
-                ushort adresa = BitConverter.ToUInt16(response, (8));
-                adresa = (ushort)IPAddress.NetworkToHostOrder((short)adresa);
-                ushort value = BitConverter.ToUInt16(response, (10));
-                value = (ushort)IPAddress.NetworkToHostOrder((short)value);
-                ret.Add(new Tuple<PointType, ushort>(PointType.ANALOG_OUTPUT, adresa), value);
-            }
+            ushort outputAddress = (ushort)IPAddress.NetworkToHostOrder((short)BitConverter.ToUInt16(response, 8));
+            ushort value = (ushort)IPAddress.NetworkToHostOrder((short)BitConverter.ToUInt16(response, 10));
 
-            return ret;
+            Tuple<PointType, ushort> tuple = new Tuple<PointType, ushort>(PointType.ANALOG_OUTPUT, outputAddress);
+            resp.Add(tuple, value);
+
+            return resp;
 
         }
     }
