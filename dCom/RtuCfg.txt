@@ -1,9 +1,7 @@
 STA 1
 TCP 502
 
-DI_REG  3 2200  0  0      1     0  DI  @StanjeUSB 2
-DI_REG  1 2203  0  0      1     0  DI  @StanjeUticnice 2
-DI_REG  1 2204  0  0      1     0  DI  @StanjeUSBC 3
+DI_REG  5 2200  0  0      1     0  DI  @StanjeUticnice 2
 HR_INT  1 2000  0  0      95  1200 AO  @KapacitetBaterije 4
 DO_REG  2 3600  0  0      1     0  DO  @PrekidacNapajanja 4
 

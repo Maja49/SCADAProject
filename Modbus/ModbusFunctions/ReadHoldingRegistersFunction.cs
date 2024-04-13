@@ -56,11 +56,19 @@ namespace Modbus.ModbusFunctions
             int byteCount = response[8];
             ushort startAddress = ((ModbusReadCommandParameters)CommandParameters).StartAddress;
 
-            for (int i = 0; i < byteCount; i += 2)
+            if (response[7] == CommandParameters.FunctionCode + 0x80)
             {
-                ushort value = (ushort)IPAddress.NetworkToHostOrder((short)BitConverter.ToUInt16(response, 9 + i));
-                Tuple<PointType, ushort> tuple = new Tuple<PointType, ushort>(PointType.ANALOG_OUTPUT, startAddress++);
-                resp.Add(tuple, value);
+                HandeException(response[8]);
+            }
+            else
+            {
+                for (int i = 0; i < byteCount; i += 2)
+                {
+                    ushort value = BitConverter.ToUInt16(response, 9 + i);
+                    value = (ushort)IPAddress.NetworkToHostOrder((short)value);
+                    Tuple<PointType, ushort> tuple = new Tuple<PointType, ushort>(PointType.ANALOG_OUTPUT, startAddress++);
+                    resp.Add(tuple, value);
+                }
             }
 
             return resp;
